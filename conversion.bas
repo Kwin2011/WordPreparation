@@ -123,85 +123,90 @@ End Function
 
 Sub set_wdRowHeightAuto()
 
-''''------------------------
-issStartMacros = MsgBox("Start macros ""RowHeightAuto""?", vbYesNo + vbQuestion)
-If issStartMacros = vbYes Then
-''''------------------------
+    '----------------------------------------
+    issStartMacros = MsgBox("Start macros ""RowHeightAuto""?", vbYesNo + vbQuestion)
+    If issStartMacros <> vbYes Then Exit Sub
+    '----------------------------------------
 
-Dim mytable1 As Table
- 
-For Each mytable1 In ActiveDocument.Tables
-mytable1.Range.Editors.Add wdEditorEveryone
+    ' Start single Undo record
+    Application.UndoRecord.StartCustomRecord "RowHeightAuto Macro"
 
-mytable1.Rows.HeightRule = wdRowHeightAtLeast
+    ' Ask whether to apply zero padding (default behavior = No)
+    Dim applyPadding As Integer
+    applyPadding = MsgBox("Apply zero padding to all tables?", vbYesNo + vbQuestion)
 
+    Dim mytable1 As Table
 
-        'mytable1.TopPadding = InchesToPoints(0#)
-        'mytable1.BottomPadding = InchesToPoints(0#)
-        'mytable1.LeftPadding = InchesToPoints(0#)
-        'mytable1.RightPadding = InchesToPoints(0#)
+    For Each mytable1 In ActiveDocument.Tables
 
+        ' Temporarily unlock table range
+        mytable1.Range.Editors.Add wdEditorEveryone
 
-'mytable1.Rows.HeightRule = wdRowHeightAuto
-'mytable1.Rows.Height = InchesToPoints(0)
-Next
-ActiveDocument.SelectAllEditableRanges (wdEditorEveryone)
-ActiveDocument.DeleteAllEditableRanges (wdEditorEveryone)
-'Call set_hederGlobal
-''''------------------------
-End If
-''''------------------------
+        ' Set row height rule
+        mytable1.Rows.HeightRule = wdRowHeightAtLeast
 
-End Sub
+        ' Apply zero padding only if confirmed
+        If applyPadding = vbYes Then
+            mytable1.TopPadding = InchesToPoints(0#)
+            mytable1.BottomPadding = InchesToPoints(0#)
+            mytable1.LeftPadding = InchesToPoints(0#)
+            mytable1.RightPadding = InchesToPoints(0#)
+        End If
 
-Sub set_wdRowHeightAutoNoAsk()
+        'mytable1.Rows.HeightRule = wdRowHeightAuto
+        'mytable1.Rows.Height = InchesToPoints(0)
 
-''''------------------------
+    Next
 
-Dim mytable1 As Table
- 
-For Each mytable1 In ActiveDocument.Tables
-mytable1.Range.Editors.Add wdEditorEveryone
+    ' Remove temporary editable ranges
+    ActiveDocument.SelectAllEditableRanges (wdEditorEveryone)
+    ActiveDocument.DeleteAllEditableRanges (wdEditorEveryone)
 
-mytable1.Rows.HeightRule = wdRowHeightAtLeast
-
-'mytable1.Rows.HeightRule = wdRowHeightAuto
-'mytable1.Rows.Height = InchesToPoints(0)
-Next
-ActiveDocument.SelectAllEditableRanges (wdEditorEveryone)
-ActiveDocument.DeleteAllEditableRanges (wdEditorEveryone)
-
-''''------------------------
-
+    ' End single Undo record
+    Application.UndoRecord.EndCustomRecord
 
 End Sub
+
+
 
 Sub set_wdAutoFitWindow()
-''''------------------------
-issStartMacros = MsgBox("Start macros ""AutoFitWindow""?", vbYesNo + vbQuestion)
-If issStartMacros = vbYes Then
-''''------------------------
 
-Dim mytable As Table
-For Each mytable In ActiveDocument.Tables
-mytable.Range.Editors.Add wdEditorEveryone
-mytable.AutoFitBehavior (wdAutoFitWindow) '
-mytable.Rows.WrapAroundText = False
-With mytable
-       
-        .AllowPageBreaks = False '
-        .AllowAutoFit = False '
-    End With
+    '----------------------------------------
+    issStartMacros = MsgBox("Start macros ""AutoFitWindow""?", vbYesNo + vbQuestion)
+    If issStartMacros <> vbYes Then Exit Sub
+    '----------------------------------------
 
+    ' Start single Undo record
+    Application.UndoRecord.StartCustomRecord "AutoFitWindow Macro"
 
+    Dim mytable As Table
 
-Next
-ActiveDocument.SelectAllEditableRanges (wdEditorEveryone)
-ActiveDocument.DeleteAllEditableRanges (wdEditorEveryone)
+    For Each mytable In ActiveDocument.Tables
 
-''''------------------------
-End If
-''''------------------------
+        ' Temporarily unlock table range
+        mytable.Range.Editors.Add wdEditorEveryone
+
+        ' Apply AutoFit to window width
+        mytable.AutoFitBehavior (wdAutoFitWindow)
+
+        ' Disable text wrapping around table
+        mytable.Rows.WrapAroundText = False
+
+        ' Lock table layout settings
+        With mytable
+            .AllowPageBreaks = False
+            .AllowAutoFit = False
+        End With
+
+    Next
+
+    ' Remove temporary editable ranges
+    ActiveDocument.SelectAllEditableRanges (wdEditorEveryone)
+    ActiveDocument.DeleteAllEditableRanges (wdEditorEveryone)
+
+    ' End single Undo record
+    Application.UndoRecord.EndCustomRecord
+
 End Sub
 
 Sub set_wdAutoFitWindowNoAsk()
