@@ -1,3 +1,62 @@
+Sub BilingualTable()
+    '------------------------------------------------
+    ' Create Bilingual Table
+    '------------------------------------------------
+
+    Dim issStartCheck As Integer
+    issStartCheck = MsgBox("Run ""Bilingual Table"" macros?", vbYesNo + vbQuestion)
+    If issStartCheck <> vbYes Then Exit Sub
+
+    ' Початок запису для Undo
+    Application.UndoRecord.StartCustomRecord "Bilingual Table Macro"
+
+    On Error GoTo ErrorHandler
+
+    ' Convert selection to table
+    Selection.ConvertToTable Separator:=wdSeparateByParagraphs, NumColumns:=1, _
+        NumRows:=8, AutoFitBehavior:=wdAutoFitFixed
+
+    ' Apply table style and formatting
+    With Selection.Tables(1)
+        If .Style <> "Table Grid" Then .Style = "Table Grid"
+        .ApplyStyleHeadingRows = True
+        .ApplyStyleLastRow = False
+        .ApplyStyleFirstColumn = True
+        .ApplyStyleLastColumn = False
+        .ApplyStyleRowBands = True
+        .ApplyStyleColumnBands = False
+    End With
+
+    ' Insert second column and adjust sizing
+    Selection.InsertColumnsRight
+    Selection.Tables(1).AutoFitBehavior (wdAutoFitWindow)
+
+    ' Show number of rows
+    Dim Rowss As Integer
+    Rowss = Selection.Tables(1).Rows.Count
+    MsgBox Rowss & " Rows"
+
+    ' Fill second column with modified first column and hide first column text
+    Dim i As Integer
+    For i = Rowss To 1 Step -1
+        With Selection.Tables(1)
+            .Cell(Row:=i, Column:=2).Range.Text = _
+                Left(.Cell(i, 1).Range.Text, Len(.Cell(i, 1).Range.Text) - 2)
+        End With
+    Next i
+
+    ' Hide first column
+    Selection.Tables(1).Columns(1).Range.Font.Hidden = True
+
+    ' Завершення запису для Undo
+    Application.UndoRecord.EndCustomRecord
+
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "An error occurred: " & Err.Description
+    Application.UndoRecord.EndCustomRecord
+End Sub
 
 Sub GlobalDeleteFirstSpace()
 ''''---------Ask---------------
