@@ -1,4 +1,4 @@
-Attribute VB_Name = "conversion"
+
 Sub GlobalDeleteFirstSpace()
 ''''---------Ask---------------
 issStartMacros = MsgBox("Run macros ""GlobalDeleteFirstSpace""? Works for a long time", vbYesNo + vbQuestion)
@@ -169,21 +169,24 @@ ActiveDocument.DeleteAllEditableRanges (wdEditorEveryone)
 ''''------------------------
 
 End Sub
+
+
 Sub conversion()
-'
-' preporation for conversion _SO
-''''------------------------
-issStartMacros = MsgBox("Start macros ""conversion""?", vbYesNo + vbQuestion)
-If issStartMacros = vbYes Then
-''''------------------------
+    '------------------------------------------------
+    ' Preparation for conversion _SO
+    '------------------------------------------------
+    
+    Dim issStartMacros As Integer
+    issStartMacros = MsgBox("Start macros ""conversion""?", vbYesNo + vbQuestion)
+    If issStartMacros <> vbYes Then Exit Sub
+    
+    ' Початок запису для Undo
+    Application.UndoRecord.StartCustomRecord "Conversion Macro"
 
-'Result4 = MsgBox("Set one column in the whole documents?", vbYesNo + vbQuestion)
+    On Error GoTo column
 
-On Error GoTo column
-
-'If Result4 = vbYes Then
-
-Selection.WholeStory
+    'Set one column in the whole document
+    Selection.WholeStory
     If ActiveWindow.View.SplitSpecial <> wdPaneNone Then
         ActiveWindow.Panes(2).Close
     End If
@@ -192,97 +195,64 @@ Selection.WholeStory
     End If
     With Selection.PageSetup.TextColumns
         .SetCount NumColumns:=1
-       ' .EvenlySpaced = True
-      ' .LineBetween = False
+        '.EvenlySpaced = True
+        '.LineBetween = False
     End With
-'Else:
-'End If
 column:
 
-
-
-'Remove section break
-On Error GoTo section_break
-
-Selection.WholeStory
+    ' Remove section break
+    On Error GoTo section_break
+    Selection.WholeStory
     With Selection.Find
-    .ClearFormatting
-    .Execute findText:="^b"
-    .Replacement.Text = "^p"  ''^p  ^m
+        .ClearFormatting
+        .Execute findText:="^b"
+        .Replacement.Text = "^p"
     End With
     
-    If Selection.Find.found = True Then
-       Result = MsgBox("Remove section break?", vbYesNo + vbQuestion)
-        If Result = vbYes Then
-        Call removeSectionBreak
-        Else:
-        End If
-    Else:
+    If Selection.Find.Found Then
+        Dim Result As Integer
+        Result = MsgBox("Remove section break?", vbYesNo + vbQuestion)
+        If Result = vbYes Then Call removeSectionBreak
     End If
-
 section_break:
 
-'Remove column break?
- Selection.WholeStory
-    With Selection.Find
-    .ClearFormatting
-    .Execute findText:="^n"
-    .Replacement.Text = "^p"
-    End With
-  
-  
-    If Selection.Find.found = True Then
-    '    Result = MsgBox("Remove column break?", vbYesNo + vbQuestion)
-    '    If Result = vbYes Then
-        Call replaceCycle
-    '  Else:
-    '  End If
-    Else:
-    End If
-    
-
-
-'Remove double space
- Selection.WholeStory
-    With Selection.Find
-    .ClearFormatting
-    .Execute findText:="  "
-    .Replacement.Text = " "
-    End With
-  
-    If Selection.Find.found = True Then
-        Call replaceCycle
-    Else:
-    End If
-
-'Remove space before dot
-
+    ' Remove column break
     Selection.WholeStory
     With Selection.Find
-    .ClearFormatting
-    .Execute findText:=" ."
-    .Replacement.Text = "."
+        .ClearFormatting
+        .Execute findText:="^n"
+        .Replacement.Text = "^p"
     End With
-  
-    If Selection.Find.found = True Then
-        Call replaceCycle
-    Else:
-    End If
-   
-'Remove space before comma?
+    If Selection.Find.Found Then Call replaceCycle
+
+    ' Remove double spaces
     Selection.WholeStory
     With Selection.Find
-    .ClearFormatting
-    .Execute findText:=" ,"
-    .Replacement.Text = ","
+        .ClearFormatting
+        .Execute findText:="  "
+        .Replacement.Text = " "
     End With
-  
-    If Selection.Find.found = True Then
-        Call replaceCycle
-    Else:
-    End If
-      
-'Set Spacing,Position = 0 and Scaling = 100",vbYesNo + vbQuestion)
+    If Selection.Find.Found Then Call replaceCycle
+
+    ' Remove space before dot
+    Selection.WholeStory
+    With Selection.Find
+        .ClearFormatting
+        .Execute findText:=" ."
+        .Replacement.Text = "."
+    End With
+    If Selection.Find.Found Then Call replaceCycle
+
+    ' Remove space before comma
+    Selection.WholeStory
+    With Selection.Find
+        .ClearFormatting
+        .Execute findText:=" ,"
+        .Replacement.Text = ","
+    End With
+    If Selection.Find.Found Then Call replaceCycle
+
+    ' Set Font Spacing, Position, Scaling
     Selection.WholeStory
     With Selection.Font
         .NameFarEast = ""
@@ -293,54 +263,38 @@ section_break:
         .Scaling = 100
         .Position = 0
     End With
-    
 
-'Set LineSpace = Single
-'Result33 = MsgBox("Set LineSpace = Single", vbYesNo + vbQuestion)
-'If Result3 = vbYes Then
-
+    ' Set Line Spacing = Single
     Selection.WholeStory
     With Selection.ParagraphFormat
-    
         .LineSpacingRule = wdLineSpaceSingle
-               
     End With
-    ''''
-    
-   
-      '   Call GlobalDeleteFirstSpace
-      
-    
-   
-' Else:
-'End If
 
-''''------------------------
-End If
-''''------------------------
+    ' Завершення запису для Undo
+    Application.UndoRecord.EndCustomRecord
+
 End Sub
+
+'---------------------------------------
 Private Function replaceCycle()
-Do While Selection.Find.found
-    Selection.WholeStory
-    Selection.Find.Execute Replace:=wdReplaceAll
+    Do While Selection.Find.Found
+        Selection.WholeStory
+        Selection.Find.Execute Replace:=wdReplaceAll
     Loop
 End Function
+
 Private Function Replace(x As String, y As String)
-    
     With Selection.Find
         .Text = x
         .Replacement.Text = y
     End With
     Selection.Find.Execute Replace:=wdReplaceAll
-     Selection.Find.Execute Replace:=wdReplaceAll
+    Selection.Find.Execute Replace:=wdReplaceAll
 End Function
+
 Private Function removeSectionBreak()
-
-Selection.WholeStory
-
- Dim rg As Range
- 'Dim count As Integer
- 'count = 0
+    Selection.WholeStory
+    Dim rg As Range
     Set rg = ActiveDocument.Range
     With rg.Find
         .Text = "^b"
@@ -349,14 +303,12 @@ Selection.WholeStory
             rg.Delete
             rg.InsertBreak Type:=wdPageBreak
             rg.Collapse wdCollapseEnd
-            Count = Count + 1
         Wend
     End With
 
     Selection.Find.Execute Replace:=wdReplaceAll
     Selection.Find.ClearFormatting
     Selection.Find.Replacement.ClearFormatting
-
 End Function
 
 
